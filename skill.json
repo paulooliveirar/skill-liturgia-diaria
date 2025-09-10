@@ -22,7 +22,10 @@
     },
     "apis": {
       "custom": {
-        "endpoint": {}
+        "endpoint": {
+          "sourceDir": "lambda/custom",
+          "uri": "ask-custom-liturgia-diaria-default"
+        }
       }
     },
     "manifestVersion": "1.0"
