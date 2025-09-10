@@ -1,14 +1,14 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "liturgia diária",
+      "invocationName": "liturgia do dia ",
       "intents": [
         {
           "name": "LiturgiaDiariaIntent",
           "slots": [],
           "samples": [
-            "tocar liturgia diária",
-            "iniciar liturgia diária"
+            "tocar liturgia do dia",
+            "iniciar liturgia do dia"
           ]
         },
         {
