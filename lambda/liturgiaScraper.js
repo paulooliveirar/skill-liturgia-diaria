@@ -1,30 +1,40 @@
 const axios = require('axios');
-const cheerio = require('cheerio');
+const { parse } = require('node-html-parser');
 
 async function getLiturgiaDiaria() {
+  // Faz request na CNBB
   const url = 'https://www.cnbb.org.br/liturgia-diaria/';
   const resp = await axios.get(url);
-  const $ = cheerio.load(resp.data);
+  
+  // Parseia HTML e seleciona container principal
+  const root = parse(resp.data);
+  const container = root.querySelector('.principal-content');
+  
+  // Extrai cabeçalho (tempo e data)
+  const headerEl = container.querySelector('h2');
+  const header = headerEl ? headerEl.text.trim() : '';
 
-  const container = $('.principal-content');
-  const header = container.find('h2').first().text().trim();
-
+  // Percorre filhos para mapear seções
   const secoes = {};
-  container.find('h3, p').each((_, el) => {
-    const tag = el.tagName.toLowerCase();
-    const texto = $(el).text().trim();
-    if (tag === 'h3') {
-      secoes[texto] = '';
-    } else {
-      const atual = Object.keys(secoes).pop();
-      secoes[atual] += texto + ' ';
+  let ultimaSecao = null;
+  
+  container.childNodes.forEach(node => {
+    if (node.tagName === 'h3') {
+      ultimaSecao = node.text.trim();
+      secoes[ultimaSecao] = '';
+    }
+    else if (node.tagName === 'p' && ultimaSecao) {
+      secoes[ultimaSecao] += node.text.trim() + ' ';
     }
   });
 
+  // Monta SSML
   let ssml = `<speak><p>${header}</p>`;
-  for (const [titulo, corpo] of Object.entries(secoes)) {
-    ssml += `<p><emphasis level="moderate">${titulo}</emphasis> ${corpo}</p>`;
-  }
+  Object.entries(secoes).forEach(
+    ([titulo, corpo]) => {
+      ssml += `<p><emphasis level="moderate">${titulo}:</emphasis> ${corpo}</p>`;
+    }
+  );
   ssml += `</speak>`;
 
   return ssml;
