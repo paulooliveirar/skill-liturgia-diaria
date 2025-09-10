@@ -1,15 +1,15 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "leituras biblica",
+      "invocationName": "leituras sagradas",
       "intents": [
         {
           "name": "LiturgiaDiariaIntent",
           "slots": [],
           "samples": [
-            "tocar leituras biblica",
-            "iniciar leituras biblica",
-            "quero as leituras biblica"
+            "tocar leituras sagradas",
+            "iniciar leituras sagradas",
+            "quero as leituras sagradas"
           ]
         },
         { "name": "AMAZON.HelpIntent",   "samples": [] },
