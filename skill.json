@@ -3,7 +3,7 @@
     "publishingInformation": {
       "locales": {
         "pt-BR": {
-          "name": "Liturgia do dia",
+          "name": "liturgia do dia",
           "summary": "Lê a Liturgia Diária da CNBB",
           "description": "Skill que acessa o site da CNBB e lê Primeira Leitura, Salmo e Evangelho do dia.",
           "examplePhrases": [
