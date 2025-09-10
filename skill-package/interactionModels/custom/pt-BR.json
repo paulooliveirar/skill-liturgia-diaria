@@ -1,0 +1,30 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "liturgia diária",
+      "intents": [
+        {
+          "name": "LiturgiaDiariaIntent",
+          "slots": [],
+          "samples": [
+            "tocar liturgia diária",
+            "iniciar liturgia diária"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        }
+      ],
+      "types": []
+    }
+  }
+}
