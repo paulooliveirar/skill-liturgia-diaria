@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "leituras sagradas",
+      "invocationName": "teste lalala",
       "intents": [
         {
           "name": "LiturgiaDiariaIntent",
