@@ -1,12 +1,23 @@
-// index.js
 const Alexa = require('ask-sdk-core');
+const https = require('https');
 const { parse } = require('node-html-parser');
 
-// Usa fetch nativo do Node.js 18+
-// Mantém cache em memória para evitar fetchs repetidos
-let cache = { ts: 0, ssml: '' };
-const CACHE_TTL = 1000 * 60 * 10; // 10 minutos
 const URL = 'https://www.cnbb.org.br/liturgia-diaria/';
+const CACHE_TTL = 1000 * 60 * 10; // 10 minutos
+let cache = { ts: 0, ssml: '' };
+
+/**
+ * Faz GET com https e retorna o HTML como string
+ */
+function fetchHtml(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
 
 async function getLiturgiaDiaria() {
   const now = Date.now();
@@ -14,12 +25,11 @@ async function getLiturgiaDiaria() {
     return cache.ssml;
   }
 
-  const res = await fetch(URL);
-  const html = await res.text();
+  const html = await fetchHtml(URL);
   const root = parse(html);
-  const container = root.querySelector('.principal-content');
+  const container = root.querySelector('.principal-content') || { childNodes: [] };
 
-  const header = container.querySelector('h2').text.trim() || '';
+  const header = container.querySelector('h2')?.text.trim() || '';
   const secoes = {};
   let chave = null;
 
@@ -27,8 +37,7 @@ async function getLiturgiaDiaria() {
     if (node.tagName === 'h3') {
       chave = node.text.trim();
       secoes[chave] = '';
-    }
-    else if (node.tagName === 'p' && chave) {
+    } else if (node.tagName === 'p' && chave) {
       secoes[chave] += node.text.trim() + ' ';
     }
   }
@@ -47,7 +56,7 @@ const LiturgiaHandler = {
   canHandle(input) {
     const req = input.requestEnvelope.request;
     return req.type === 'LaunchRequest'
-        || (req.type === 'IntentRequest' && req.intent.name === 'LiturgiaDiariaIntent');
+      || (req.type === 'IntentRequest' && req.intent.name === 'LiturgiaDiariaIntent');
   },
   async handle(input) {
     const isLaunch = input.requestEnvelope.request.type === 'LaunchRequest';
@@ -55,21 +64,20 @@ const LiturgiaHandler = {
       ? 'Bem-vindo às Leituras Sagradas. Diga: tocar leituras sagradas.'
       : await getLiturgiaDiaria();
 
-    return input.responseBuilder
-      .speak(speech)
-      .reprompt(isLaunch ? speech : null)
-      .getResponse();
+    const builder = input.responseBuilder.speak(speech);
+    if (isLaunch) builder.reprompt(speech);
+    return builder.getResponse();
   }
 };
 
 const HelpHandler = {
   canHandle(input) {
     return input.requestEnvelope.request.type === 'IntentRequest'
-        && input.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
+      && input.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
   },
   handle(input) {
-    const p = 'Você pode dizer: tocar leituras sagradas.';
-    return input.responseBuilder.speak(p).reprompt(p).getResponse();
+    const prompt = 'Você pode dizer: tocar leituras sagradas.';
+    return input.responseBuilder.speak(prompt).reprompt(prompt).getResponse();
   }
 };
 
@@ -84,10 +92,21 @@ const CancelStopHandler = {
   }
 };
 
+const SessionEndedHandler = {
+  canHandle(input) {
+    return input.requestEnvelope.request.type === 'SessionEndedRequest';
+  },
+  handle(input) {
+    return input.responseBuilder.getResponse();
+  }
+};
+
 const ErrorHandler = {
-  canHandle() { return true; },
-  handle(input, err) {
-    console.error(err);
+  canHandle() {
+    return true;
+  },
+  handle(input, error) {
+    console.error(error);
     return input.responseBuilder
       .speak('Desculpe, ocorreu um erro.')
       .getResponse();
@@ -98,7 +117,8 @@ exports.handler = Alexa.SkillBuilders.custom()
   .addRequestHandlers(
     LiturgiaHandler,
     HelpHandler,
-    CancelStopHandler
+    CancelStopHandler,
+    SessionEndedHandler
   )
   .addErrorHandlers(ErrorHandler)
   .lambda();
