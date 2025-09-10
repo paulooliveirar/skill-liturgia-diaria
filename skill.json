@@ -16,7 +16,7 @@
       "isAvailableWorldwide": false,
       "distributionCountries": ["BR"],
       "defaultLanguage": "pt-BR",
-      "testingInstructions": "Peça: tocar tocar leituras sagradas",
+      "testingInstructions": "Peça: tocar leituras sagradas",
       "category": "RELIGION_AND_SPIRITUALITY",
       "distributionMode": "PUBLIC"
     },
