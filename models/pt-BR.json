@@ -1,92 +1,22 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "change me",
+      "invocationName": "leituras sagradas",
       "intents": [
         {
-          "name": "AMAZON.CancelIntent",
-          "samples": []
-        },
-        {
-          "name": "AMAZON.HelpIntent",
-          "samples": []
-        },
-        {
-          "name": "AMAZON.StopIntent",
-          "samples": []
-        },
-        {
-          "name": "AMAZON.FallbackIntent",
-          "samples": []
-        },
-        {
-          "name": "GetNewFactIntent",
-          "slots": [
-            {
-              "name": "factType",
-              "type": "FactType"
-            }
-          ],
+          "name": "LiturgiaDiariaIntent",
+          "slots": [],
           "samples": [
-            "um fato",
-            "um fato {factType}",
-            "tme diga um fato",
-            "diga-me um fato de {factType}",
-            "me dê um fato",
-            "me diga curiosidades",
-            "conte-me uma curiosidade de {factType}",
-            "me dê curiosidades",
-            "dê-me uma curiosidade de {factType}",
-            "me dê alguma informação",
-            "dê-me algumas informações de {factType}",
-            "Me conte algo",
-            "me dê algo"
+            "tocar leituras sagradas",
+            "iniciar leituras sagradas",
+            "quero as leituras sagradas"
           ]
         },
-        {
-          "name": "AMAZON.NavigateHomeIntent",
-          "samples": []
-        },
-        {
-          "name": "AddNewFact",
-          "slots": [
-            {
-              "name": "factType",
-              "type": "FactType"
-            }
-          ],
-          "samples": [
-            "adicione {factType} como um novo tópico",
-            "salve {factType} como um novo tópico",
-            "adicione {factType} como tópico favorito",
-            "salve {factType} como tópico favorito",
-            "adicione {factType} como um tópico de fato favorito",
-            "salve {factType} como um tópico de fatos favorito"
-          ]
-        }
+        { "name": "AMAZON.HelpIntent",   "samples": [] },
+        { "name": "AMAZON.CancelIntent", "samples": [] },
+        { "name": "AMAZON.StopIntent",   "samples": [] }
       ],
-      "types": [
-        {
-          "name": "FactType",
-          "values": [
-            {
-              "name": {
-                "value": "Space"
-              }
-            },
-            {
-              "name": {
-                "value": "Soccer"
-              }
-            },
-            {
-              "name": {
-                "value": "Football"
-              }
-            }
-          ]
-        }
-      ]
+      "types": []
     }
   }
 }
