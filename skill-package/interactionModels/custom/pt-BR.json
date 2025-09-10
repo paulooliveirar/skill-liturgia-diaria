@@ -1,22 +1,35 @@
 {
-  "interactionModel": {
-    "languageModel": {
-      "invocationName": "liturgia diaria",
-      "intents": [
-        {
-          "name": "LiturgiaDiariaIntent",
-          "slots": [],
-          "samples": [
-            "Qual é a liturgia de hoje?",
-            "Me diga a liturgia diária",
-            "Quero ouvir a liturgia"
-          ]
-        },
-        { "name": "AMAZON.HelpIntent",   "samples": [] },
-        { "name": "AMAZON.CancelIntent", "samples": [] },
-        { "name": "AMAZON.StopIntent",   "samples": [] }
-      ],
-      "types": []
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "liturgia diaria",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "LiturgiaIntent",
+                    "slots": [],
+                    "samples": [
+                        "Abrir liturgia diária",
+                        "Liturgia de hoje",
+                        "Me diga a liturgia diária"
+                    ]
+                }
+            ],
+            "types": []
+        }
     }
-  }
 }

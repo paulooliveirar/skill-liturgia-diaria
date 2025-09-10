@@ -104,4 +104,6 @@ exports.handler = Alexa.SkillBuilders.custom()
     HelpHandler,
     CancelAndStopHandler
   )
-  .lambda
+  .lambda();
+  
+  
