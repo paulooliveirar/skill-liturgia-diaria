@@ -7,8 +7,8 @@
           "summary": "Lê a Liturgia Diária da CNBB",
           "description": "Skill que acessa o site da CNBB e lê Primeira Leitura, Salmo e Evangelho do dia.",
           "examplePhrases": [
-            "Alexa, abrir tocar leituras sagradas",
-            "Alexa, tocar tocar leituras sagradas"
+            "Alexa, abrir leituras sagradas",
+            "Alexa, tocar leituras sagradas"
           ],
           "keywords": ["liturgia", "diária", "CNBB"]
         }
