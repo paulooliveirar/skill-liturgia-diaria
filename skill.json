@@ -3,28 +3,26 @@
     "publishingInformation": {
       "locales": {
         "pt-BR": {
-          "summary": "Aprenda fatos divertidos sobre o espaço.",
+          "name": "Liturgia Diária",
+          "summary": "Lê a Liturgia Diária da CNBB",
+          "description": "Skill que acessa o site da CNBB e lê Primeira Leitura, Salmo e Evangelho do dia.",
           "examplePhrases": [
-            "Alexa abrir fatos espaciais",
-            "Alexa me conta um fato",
-            "Alexa me conta um fato sobre o espaço"
+            "Alexa, abrir tocar leituras sagradas",
+            "Alexa, tocar tocar leituras sagradas"
           ],
-          "keywords": [
-            "espaço",
-            "fatos",
-            "trivia"
-          ],
-          "name": "Fatos Espaciais",
-          "description": "Pergunte por Fatos Espaciais e aprenda sobre o que interessa, como matéria escura.\n\nA skill Fatos Espaciais proporciona divertimento para toda família e certamente fará você mais inteligente. \n\nPara iniciar, apenas fale \"Alexa, iniciar Fatos Espaciais\" ou \"Alexa, abrir Fatos Espaciais\" para receber um fato\".\n\nA qualquer momento, você pode dizer \"Alexa, pare\""
-        },
-      }
+          "keywords": ["liturgia", "diária", "CNBB"]
+        }
+      },
+      "isAvailableWorldwide": false,
+      "distributionCountries": ["BR"],
+      "defaultLanguage": "pt-BR",
+      "testingInstructions": "Peça: tocar tocar leituras sagradas",
+      "category": "RELIGION_AND_SPIRITUALITY",
+      "distributionMode": "PUBLIC"
     },
     "apis": {
       "custom": {
-        "endpoint": {
-          "sourceDir": "lambda/custom",
-          "uri": "ask-custom-fact-default"
-        }
+        "endpoint": {}
       }
     },
     "manifestVersion": "1.0"
