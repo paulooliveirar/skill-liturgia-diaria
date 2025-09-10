@@ -1,137 +1,104 @@
 // index.js
 const Alexa = require('ask-sdk-core');
-const axios = require('axios');
 const { parse } = require('node-html-parser');
 
-/**
- * Faz scraping da Liturgia Diária no site da CNBB e retorna SSML
- */
+// Usa fetch nativo do Node.js 18+
+// Mantém cache em memória para evitar fetchs repetidos
+let cache = { ts: 0, ssml: '' };
+const CACHE_TTL = 1000 * 60 * 10; // 10 minutos
+const URL = 'https://www.cnbb.org.br/liturgia-diaria/';
+
 async function getLiturgiaDiaria() {
-  const url = 'https://www.cnbb.org.br/liturgia-diaria/';
-  const resp = await axios.get(url);
-  const root = parse(resp.data);
+  const now = Date.now();
+  if (cache.ssml && (now - cache.ts) < CACHE_TTL) {
+    return cache.ssml;
+  }
+
+  const res = await fetch(URL);
+  const html = await res.text();
+  const root = parse(html);
   const container = root.querySelector('.principal-content');
 
-  // Cabeçalho (tempo litúrgico e data)
-  const headerEl = container.querySelector('h2');
-  const header = headerEl ? headerEl.text.trim() : '';
-
-  // Extrai blocos de h3 e p
+  const header = container.querySelector('h2').text.trim() || '';
   const secoes = {};
-  let ultimaSecao = null;
-  container.childNodes.forEach(node => {
-    if (node.tagName === 'h3') {
-      ultimaSecao = node.text.trim();
-      secoes[ultimaSecao] = '';
-    } else if (node.tagName === 'p' && ultimaSecao) {
-      secoes[ultimaSecao] += node.text.trim() + ' ';
-    }
-  });
+  let chave = null;
 
-  // Monta SSML
+  for (const node of container.childNodes) {
+    if (node.tagName === 'h3') {
+      chave = node.text.trim();
+      secoes[chave] = '';
+    }
+    else if (node.tagName === 'p' && chave) {
+      secoes[chave] += node.text.trim() + ' ';
+    }
+  }
+
   let ssml = `<speak><p>${header}</p>`;
-  Object.entries(secoes).forEach(([titulo, corpo]) => {
+  for (const [titulo, corpo] of Object.entries(secoes)) {
     ssml += `<p><emphasis level="moderate">${titulo}:</emphasis> ${corpo}</p>`;
-  });
+  }
   ssml += `</speak>`;
 
+  cache = { ts: now, ssml };
   return ssml;
 }
 
-// Handler para LaunchRequest
-const LaunchRequestHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
+const LiturgiaHandler = {
+  canHandle(input) {
+    const req = input.requestEnvelope.request;
+    return req.type === 'LaunchRequest'
+        || (req.type === 'IntentRequest' && req.intent.name === 'LiturgiaDiariaIntent');
   },
-  handle(handlerInput) {
-    const speechText = 'Bem-vindo às Leituras Sagradas. Diga: tocar leituras sagradas.';
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .reprompt(speechText)
+  async handle(input) {
+    const isLaunch = input.requestEnvelope.request.type === 'LaunchRequest';
+    const speech = isLaunch
+      ? 'Bem-vindo às Leituras Sagradas. Diga: tocar leituras sagradas.'
+      : await getLiturgiaDiaria();
+
+    return input.responseBuilder
+      .speak(speech)
+      .reprompt(isLaunch ? speech : null)
       .getResponse();
   }
 };
 
-// Handler para a Intent de Liturgia Diária
-const LiturgiaDiariaIntentHandler = {
-  canHandle(handlerInput) {
-    const req = handlerInput.requestEnvelope.request;
-    return req.type === 'IntentRequest'
-        && req.intent.name === 'LiturgiaDiariaIntent';
+const HelpHandler = {
+  canHandle(input) {
+    return input.requestEnvelope.request.type === 'IntentRequest'
+        && input.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
   },
-  async handle(handlerInput) {
-    try {
-      const ssml = await getLiturgiaDiaria();
-      return handlerInput.responseBuilder
-        .speak(ssml)
-        .withSimpleCard('Leituras Sagradas', 'Aqui estão suas leituras do dia.')
-        .getResponse();
-    } catch (error) {
-      console.error(error);
-      return handlerInput.responseBuilder
-        .speak('Desculpe, não consegui carregar as leituras agora. Tente novamente mais tarde.')
-        .getResponse();
-    }
+  handle(input) {
+    const p = 'Você pode dizer: tocar leituras sagradas.';
+    return input.responseBuilder.speak(p).reprompt(p).getResponse();
   }
 };
 
-// Handlers padrão de Help, Cancel/Stop e Sessão
-const HelpIntentHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-        && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
+const CancelStopHandler = {
+  canHandle(input) {
+    const r = input.requestEnvelope.request;
+    return r.type === 'IntentRequest'
+      && (r.intent.name === 'AMAZON.CancelIntent' || r.intent.name === 'AMAZON.StopIntent');
   },
-  handle(handlerInput) {
-    const speechText = 'Você pode dizer: tocar leituras sagradas.';
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .reprompt(speechText)
-      .getResponse();
-  }
-};
-
-const CancelAndStopIntentHandler = {
-  canHandle(handlerInput) {
-    const req = handlerInput.requestEnvelope.request;
-    return req.type === 'IntentRequest'
-        && (req.intent.name === 'AMAZON.CancelIntent' || req.intent.name === 'AMAZON.StopIntent');
-  },
-  handle(handlerInput) {
-    return handlerInput.responseBuilder
-      .speak('Até logo!')
-      .getResponse();
-  }
-};
-
-const SessionEndedRequestHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
-  },
-  handle(handlerInput) {
-    return handlerInput.responseBuilder.getResponse();
+  handle(input) {
+    return input.responseBuilder.speak('Até logo!').getResponse();
   }
 };
 
 const ErrorHandler = {
-  canHandle() {
-    return true;
-  },
-  handle(handlerInput, error) {
-    console.error(`Error handled: ${error.message}`);
-    return handlerInput.responseBuilder
+  canHandle() { return true; },
+  handle(input, err) {
+    console.error(err);
+    return input.responseBuilder
       .speak('Desculpe, ocorreu um erro.')
       .getResponse();
   }
 };
 
-// Exporta o handler principal
 exports.handler = Alexa.SkillBuilders.custom()
   .addRequestHandlers(
-    LaunchRequestHandler,
-    LiturgiaDiariaIntentHandler,
-    HelpIntentHandler,
-    CancelAndStopIntentHandler,
-    SessionEndedRequestHandler
+    LiturgiaHandler,
+    HelpHandler,
+    CancelStopHandler
   )
   .addErrorHandlers(ErrorHandler)
   .lambda();
