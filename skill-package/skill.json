@@ -3,12 +3,12 @@
     "publishingInformation": {
       "locales": {
         "pt-BR": {
-          "name": "Liturgia Diária CNBB",
+          "name": "Liturgia Diária",
           "summary": "Lê a Liturgia Diária da CNBB",
           "description": "Skill que acessa o site da CNBB e lê Primeira Leitura, Salmo e Evangelho do dia.",
           "examplePhrases": [
-            "Alexa, abrir tocar leitura diaria",
-            "Alexa, tocar tocar leitura diaria"
+            "Alexa, abrir tocar leituras sagradas",
+            "Alexa, tocar tocar leituras sagradas"
           ],
           "keywords": ["liturgia", "diária", "CNBB"]
         }
