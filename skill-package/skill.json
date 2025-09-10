@@ -20,6 +20,11 @@
       "category": "RELIGION_AND_SPIRITUALITY",
       "distributionMode": "PUBLIC"
     },
+    "apis": {
+      "custom": {
+        "endpoint": {}
+      }
+    },    
     "manifestVersion": "1.0"
   }
 }
