@@ -1,14 +1,14 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "leituras sagradas",
+      "invocationName": "leitura diaria",
       "intents": [
         {
           "name": "LiturgiaDiariaIntent",
           "slots": [],
           "samples": [
-            "tocar leituras sagradas",
-            "iniciar leituras sagradas"
+            "tocar leitura diaria",
+            "iniciar leitura diaria"
           ]
         },
         {
