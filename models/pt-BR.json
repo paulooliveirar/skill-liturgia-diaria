@@ -7,9 +7,9 @@
           "name": "LiturgiaDiariaIntent",
           "slots": [],
           "samples": [
-            "tocar leituras sagradas",
-            "iniciar leituras sagradas",
-            "quero as leituras sagradas"
+            "tocar teste lalala",
+            "iniciar teste lalala",
+            "quero as teste lalala"
           ]
         },
         { "name": "AMAZON.HelpIntent",   "samples": [] },
