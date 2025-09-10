@@ -1,114 +1,99 @@
 const Alexa = require('ask-sdk-core');
 const https = require('https');
-const { parse } = require('node-html-parser');
 
-const URL = 'https://www.cnbb.org.br/liturgia-diaria/';
-const CACHE_TTL = 1000 * 60 * 10; // 10 minutos
-let cache = { ts: 0, ssml: '' };
+const API_URL = 'https://liturgia.up.railway.app/v2/';
 
-/**
- * Faz GET com https e retorna o HTML como string
- */
-function fetchHtml(url) {
+function fetchJson(url) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(data));
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          resolve(json);
+        } catch (err) {
+          reject(new Error('Erro ao parsear JSON'));
+        }
+      });
     }).on('error', reject);
   });
 }
 
-async function getLiturgiaDiaria() {
-  const now = Date.now();
-  if (cache.ssml && (now - cache.ts) < CACHE_TTL) {
-    return cache.ssml;
-  }
+async function gerarLiturgiaSSML() {
+  try {
+    const dataFetch = await fetchJson(API_URL);
+    const { data, liturgia, leituras } = dataFetch;
+    const { primeiraLeitura, salmo, segundaLeitura, evangelho } = leituras;
 
-  const html = await fetchHtml(URL);
-  const root = parse(html);
-  const container = root.querySelector('.principal-content') || { childNodes: [] };
+    let ssml = `<speak>`;
+    ssml += `<p>Hoje é <say-as interpret-as="date">${data}</say-as>, <emphasis level="moderate">${liturgia}</emphasis>.</p>`;
 
-  const header = container.querySelector('h2')?.text.trim() || '';
-  const secoes = {};
-  let chave = null;
-
-  for (const node of container.childNodes) {
-    if (node.tagName === 'h3') {
-      chave = node.text.trim();
-      secoes[chave] = '';
-    } else if (node.tagName === 'p' && chave) {
-      secoes[chave] += node.text.trim() + ' ';
+    if (primeiraLeitura.length) {
+      ssml += `<p><emphasis level="moderate">Primeira Leitura ${primeiraLeitura[0].referencia}</emphasis></p>`;
+      ssml += `<p><emphasis level="moderate">${primeiraLeitura[0].titulo}</emphasis></p>`;
+      ssml += `<p>${primeiraLeitura[0].texto.replace(/\d+/g, '')}</p>`;
     }
-  }
 
-  let ssml = `<speak><p>${header}</p>`;
-  for (const [titulo, corpo] of Object.entries(secoes)) {
-    ssml += `<p><emphasis level="moderate">${titulo}:</emphasis> ${corpo}</p>`;
-  }
-  ssml += `</speak>`;
+    if (salmo.length) {
+      ssml += `<p><emphasis level="moderate">Salmo Responsorial ${salmo[0].referencia}</emphasis></p>`;
+      ssml += `<p><emphasis level="moderate">${salmo[0].refrao}</emphasis></p>`;
+      ssml += `<p>${salmo[0].texto.replace(/\d+/g, '')}</p>`;
+    }
 
-  cache = { ts: now, ssml };
-  return ssml;
+    if (segundaLeitura.length) {
+      ssml += `<p><emphasis level="moderate">Segunda Leitura ${segundaLeitura[0].referencia}</emphasis></p>`;
+      ssml += `<p><emphasis level="moderate">${segundaLeitura[0].titulo}</emphasis></p>`;
+      ssml += `<p>${segundaLeitura[0].texto.replace(/\d+/g, '')}</p>`;
+    }
+
+    if (evangelho.length) {
+      ssml += `<p><emphasis level="moderate">Evangelho: ${evangelho[0].referencia}</emphasis></p>`;
+      ssml += `<p><emphasis level="moderate">${evangelho[0].titulo}</emphasis></p>`;
+      ssml += `<p>${evangelho[0].texto.replace(/\d+/g, '')}</p>`;
+    }
+
+    ssml += `</speak>`;
+    return ssml;
+  } catch (err) {
+    console.error('Erro ao gerar SSML:', err.message);
+    return `<speak>Desculpe, não foi possível obter a liturgia de hoje.</speak>`;
+  }
 }
 
 const LiturgiaHandler = {
-  canHandle(input) {
-    const req = input.requestEnvelope.request;
-    return req.type === 'LaunchRequest'
-      || (req.type === 'IntentRequest' && req.intent.name === 'LiturgiaDiariaIntent');
+  canHandle(handlerInput) {
+    return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest' ||
+           Alexa.getIntentName(handlerInput.requestEnvelope) === 'LiturgiaIntent';
   },
-  async handle(input) {
-    const isLaunch = input.requestEnvelope.request.type === 'LaunchRequest';
-    const speech = isLaunch
-      ? 'Bem-vindo às Leituras Sagradas. Diga: tocar leituras sagradas.'
-      : await getLiturgiaDiaria();
-
-    const builder = input.responseBuilder.speak(speech);
-    if (isLaunch) builder.reprompt(speech);
-    return builder.getResponse();
+  async handle(handlerInput) {
+    const ssml = await gerarLiturgiaSSML();
+    return handlerInput.responseBuilder
+      .speak(ssml)
+      .withSimpleCard('Liturgia Diária', 'Confira a liturgia de hoje.')
+      .getResponse();
   }
 };
 
 const HelpHandler = {
-  canHandle(input) {
-    return input.requestEnvelope.request.type === 'IntentRequest'
-      && input.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
+  canHandle(handlerInput) {
+    return Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.HelpIntent';
   },
-  handle(input) {
-    const prompt = 'Você pode dizer: tocar leituras sagradas.';
-    return input.responseBuilder.speak(prompt).reprompt(prompt).getResponse();
+  handle(handlerInput) {
+    return handlerInput.responseBuilder
+      .speak('Você pode pedir pela liturgia de hoje dizendo: "Alexa, abrir liturgia diária".')
+      .reprompt('Como posso te ajudar?')
+      .getResponse();
   }
 };
 
-const CancelStopHandler = {
-  canHandle(input) {
-    const r = input.requestEnvelope.request;
-    return r.type === 'IntentRequest'
-      && (r.intent.name === 'AMAZON.CancelIntent' || r.intent.name === 'AMAZON.StopIntent');
+const CancelAndStopHandler = {
+  canHandle(handlerInput) {
+    return ['AMAZON.CancelIntent', 'AMAZON.StopIntent'].includes(Alexa.getIntentName(handlerInput.requestEnvelope));
   },
-  handle(input) {
-    return input.responseBuilder.speak('Até logo!').getResponse();
-  }
-};
-
-const SessionEndedHandler = {
-  canHandle(input) {
-    return input.requestEnvelope.request.type === 'SessionEndedRequest';
-  },
-  handle(input) {
-    return input.responseBuilder.getResponse();
-  }
-};
-
-const ErrorHandler = {
-  canHandle() {
-    return true;
-  },
-  handle(input, error) {
-    console.error(error);
-    return input.responseBuilder
-      .speak('Desculpe, ocorreu um erro.')
+  handle(handlerInput) {
+    return handlerInput.responseBuilder
+      .speak('Até mais!')
       .getResponse();
   }
 };
@@ -117,8 +102,6 @@ exports.handler = Alexa.SkillBuilders.custom()
   .addRequestHandlers(
     LiturgiaHandler,
     HelpHandler,
-    CancelStopHandler,
-    SessionEndedHandler
+    CancelAndStopHandler
   )
-  .addErrorHandlers(ErrorHandler)
-  .lambda();
+  .lambda

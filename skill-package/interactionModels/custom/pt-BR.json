@@ -1,15 +1,15 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "leituras sagradas",
+      "invocationName": "liturgia diaria",
       "intents": [
         {
           "name": "LiturgiaDiariaIntent",
           "slots": [],
           "samples": [
-            "tocar leituras sagradas",
-            "iniciar leituras sagradas",
-            "quero as leituras sagradas"
+            "Qual é a liturgia de hoje?",
+            "Me diga a liturgia diária",
+            "Quero ouvir a liturgia"
           ]
         },
         { "name": "AMAZON.HelpIntent",   "samples": [] },
