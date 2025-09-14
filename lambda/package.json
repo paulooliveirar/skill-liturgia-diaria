@@ -1,12 +1,12 @@
 {
   "name": "skill-liturgia-diaria",
-  "author": "Paulo Oliveira Rodrigues",  
+  "author": "Paulo Oliveira Rodrigues",   
   "version": "1.0.0",
   "description": "Lambda da Skill Liturgia Diária",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },  
+  },
   "dependencies": {
     "ask-sdk-core": "^2.10.0",
     "ask-sdk-model": "^1.19.0",

@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "liturgia diaria",
+            "invocationName": "liturgia diária",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -23,6 +23,7 @@
                     "name": "LiturgiaIntent",
                     "slots": [],
                     "samples": [
+                        "Tocar liturgia diária",
                         "Abrir liturgia diária",
                         "Liturgia de hoje",
                         "Me diga a liturgia diária"
