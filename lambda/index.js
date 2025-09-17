@@ -29,50 +29,68 @@ async function gerarLiturgiaSSML() {
     const { primeiraLeitura, salmo, segundaLeitura, evangelho } = leituras;
 
     let ssml = `<speak>`;
+    ssml += `<lang xml:lang="pt-BR">`;
+    ssml += `<voice name="Vitoria">`;
     ssml += `<p>Hoje é <say-as interpret-as="date">${data}</say-as>, ${liturgia}.</p>`;
 
     if (primeiraLeitura.length) {
-      ssml += `<p><emphasis level="moderate">Primeira Leitura: </emphasis></p>`;
+      ssml += `<p>Primeira Leitura: </p>`;
       ssml += `<break time="1s"/>`;
-      ssml += `<p><emphasis level="moderate">${primeiraLeitura[0].titulo}. </emphasis></p>`;
-      ssml += `<p><emphasis level="moderate">${checkChapter(primeiraLeitura[0].referencia)}. </emphasis></p>`;
+      ssml += `<p>${primeiraLeitura[0].titulo}.</p>`;
+      ssml += `<break time="1s"/>`;
+      ssml += `<p><prosody rate='slow'>${checkChapter(
+        primeiraLeitura[0].referencia
+      )}. </prosody></p>`;
       ssml += `<break time="1s"/>`;
       ssml += `<p>${primeiraLeitura[0].texto.replace(/\d+/g, "")}</p>`;
-      ssml += `<break time="1s"/>`;
+      ssml += `<p>Palavra do Senhor.</p>`;
+      ssml += `<break time="3s"/>`;
     }
 
+    ssml += `</voice>`;
+
     if (salmo.length) {
-      ssml += `<p><emphasis level="moderate">Salmo Responsorial: </emphasis></p>`;
-      ssml += `<break time="1s"/>`;
-      ssml += `<p><emphasis level="moderate">${salmo[0].referencia.replace('Sl','Salmos ')}. </emphasis></p>`;
-      ssml += `<p><emphasis level="moderate">${salmo[0].refrao}. </emphasis></p>`;
-      ssml += `<break time="1s"/>`;
-      ssml += `<p>${salmo[0].texto.replace(/\d+/g, "")}</p>`;
-      ssml += `<break time="1s"/>`;
+      ssml += `<voice name="Camila">`;
+      ssml += createPsalm(salmo);
+      ssml += `</voice>`;
+      ssml += `<break time="3s"/>`;      
     }
 
     if (segundaLeitura.length) {
-      ssml += `<p><emphasis level="moderate">Segunda Leitura: </emphasis></p>`;
+      ssml += `<voice name="Vitoria">`;
+      ssml += `<p>Segunda Leitura: </p>`;
       ssml += `<break time="1s"/>`;
-      ssml += `<p><emphasis level="moderate">${segundaLeitura[0].titulo}. </emphasis></p>`;
-      ssml += `<p><emphasis level="moderate">${checkChapter(segundaLeitura[0].referencia)}. </emphasis></p>`;
+      ssml += `<p>${segundaLeitura[0].titulo}.</p>`;
+      ssml += `<break time="1s"/>`;
+      ssml += `<p><prosody rate='slow'>${checkChapter(
+        segundaLeitura[0].referencia
+      )}. </prosody></p>`;
       ssml += `<break time="1s"/>`;
       ssml += `<p>${segundaLeitura[0].texto.replace(/\d+/g, "")}</p>`;
-      ssml += `<break time="2s"/>`;
+      ssml += `<break time="1s"/>`;      
+      ssml += `<p>Palavra do Senhor</p>`;
+      ssml += `<break time="3s"/>`;
+      ssml += `</voice>`;
     }
 
     if (evangelho.length) {
-      ssml += `<p><emphasis level="moderate">Evangelho: </emphasis></p>`;
-      ssml += `<break time="1s"/>`;      
-      ssml += `<p><emphasis level="moderate">${evangelho[0].titulo}. </emphasis></p>`;
+      ssml += `<voice name="Ricardo">`;
+      ssml += `<p><prosody rate='slow'>Evangelho: </prosody></p>`;
+      ssml += `<break time="1s"/>`;
+      ssml += `<p><prosody rate='slow'>${evangelho[0].titulo}. </prosody></p>`;
       ssml += `<break time="2s"/>`;
-      ssml += `<p><emphasis level="moderate">${checkChapter(evangelho[0].referencia)}. </emphasis></p>`;
+      ssml += `<p><prosody rate='slow'>${checkChapter(
+        evangelho[0].referencia
+      )}. </prosody></p>`;
       ssml += `<break time="1s"/>`;
       ssml += `<p>${evangelho[0].texto.replace(/\d+/g, "")}</p>`;
-      ssml += `<p><emphasis level="moderate">Palavra do Senhor.</emphasis></p>`;
+      ssml += `<break time="1s"/>`;
+      ssml += `<p><prosody rate='slow'>Palavra da Salvação.</prosody></p>`;
+      ssml += `</voice>`;
     }
 
-    ssml += `</speak>`;
+    ssml += `</lang>`;
+    ssml += `</speak>`;    
     return ssml;
   } catch (err) {
     console.error("Erro ao gerar SSML:", err.message);
@@ -123,55 +141,107 @@ const CancelAndStopHandler = {
   },
 };
 
+function createPsalm(psalm) {
+  let ssml = '';
+  ssml += `<p>Salmo Responsorial: </p>`;
+  ssml += `<break time="1s"/>`;
+  ssml += `<p><prosody rate='slow'>${psalm[0].referencia.replace("Sl", "Salmo ")}. </prosody></p>`;
+  ssml += `<break time="1s"/>`;
+  
+  let stanzas = psalm[0].texto.replace(/\d+/g, "").split("– ");
+  
+  stanzas.shift();
+  
+  ssml += `<p><prosody rate='slow'>${psalm[0].refrao}</prosody></p>`;
+  
+  stanzas.forEach(stanza => {
+    ssml += `<break time="1s"/>`;
+    ssml += `<p>${stanza}</p>`;
+    ssml += `<break time="1s"/>`;
+    ssml += `<p><prosody rate='slow'>${psalm[0].refrao}</prosody></p>`;
+  });
+  
+  ssml += `<p><prosody rate='x-slow'>${psalm[0].refrao}</prosody></p>`;
+
+  return ssml;
+}
+
 function checkChapter(book) {
-    const aliases = {
-        "Gn": "Gênesis",
-        "Ex": "Êxodo",
-        "Lv": "Levítico",
-        "Nm": "Números",
-        "Dt": "Deuteronômio",
-        "Js": "Josué",
-        "Jz": "Juízes",
-        "Ed": "Esdras",
-        "Ne": "Neemias",
-        "Et": "Ester",
-        "Pv": "Provérbios",
-        "Is": "Isaías",
-        "Jr": "Jeremias",
-        "Ez": "Ezequiel",
-        "Dn": "Daniel",
-        "Mt": "Mateus",
-        "Mc": "Marcos",
-        "Lc": "Lucas",
-        "Jo": "João",
-        "At": "Atos dos Apóstolos",
-        "Rm": "Romanos",
-        "Gl": "Gálatas",
-        "Ef": "Efésios",
-        "Fp": "Filipenses",
-        "Cl": "Colossenses",
-        "Hb": "Hebreus",
-        "Tg": "Tiago",
-        "Ap": "Apocalipse",
-        "1 Co": "1ª Coríntios",
-        "2 Co": "2ª Coríntios",
-        "1 Sm": "1º Livro de Samuel",
-        "2 Sm": "2º Livro de Samuel",
-        "1 Rs": "1º Livro de Reis",
-        "2 Rs": "2º Livro de Reis",
-        "1 Cr": "1º Livro de Crônicas",
-        "2 Cr": "2º Livro de Crônicas"
-    };
+  const aliases = {
+    Gn: "Gênesis",
+    Ex: "Êxodo",
+    Lv: "Levítico",
+    Nm: "Números",
+    Dt: "aosuteronômio",
+    Js: "Josué",
+    Jz: "Juízes",
+    Rt: "Rute",
+    "1Sm": "1º Livro de Samuel",
+    "2Sm": "2º Livro de Samuel",
+    "1Rs": "1º Livro de Reis",
+    "2Rs": "2º Livro de Reis",
+    "1Cr": "1º Livro de Crônicas",
+    "2Cr": "2º Livro de Crônicas",
+    Ed: "Esdras",
+    Ne: "Neemias",
+    Et: "Ester",
+    Jó: "Jó",
+    Pv: "Provérbios",
+    Ec: "Eclesiastes",
+    Ct: "Cântico dos Cânticos",
+    Is: "Isaías",
+    Jr: "Jeremias",
+    Lm: "Lamentações aos Jeremias",
+    Ez: "Ezequiel",
+    Dn: "Daniel",
+    Os: "Oséias",
+    Jl: "Joel",
+    Am: "Amós",
+    Ob: "Obadias",
+    Jn: "Jonas",
+    Mq: "Miquéias",
+    Na: "Naum",
+    Hc: "Habacuque",
+    Sf: "Sofonias",
+    Ag: "Ageu",
+    Zc: "Zacarias",
+    Ml: "Malaquias",
+    Mt: "Mateus",
+    Mc: "Marcos",
+    Lc: "Lucas",
+    Jo: "João",
+    At: "Atos dos Apóstolos",
+    Rm: "Romanos",
+    "1Co": "1ª Carta aos Coríntios",
+    "2Co": "2ª Carta aos Coríntios",
+    Gl: "Gálatas",
+    Ef: "Efésios",
+    Fp: "Filipenses",
+    Cl: "Colossenses",
+    "1Ts": "1ª Carta aos Tessalonicenses",
+    "2Ts": "2ª Carta aos Tessalonicenses",
+    "1Tm": "1ª Carta a Timóteo",
+    "2Tm": "2ª Carta a Timóteo",
+    Tt: "Tito",
+    Fm: "Filemon",
+    Hb: "Hebreus",
+    Tg: "Tiago",
+    "1Pe": "1ª Carta de Pedro",
+    Ap: "Apocalipse",
+  };
 
-    let newTitle = book;
+  let newTitle = book;
 
-    for (const [abbr, fullName] of Object.entries(aliases)) {
-        const regex = new RegExp(`\\b${abbr}\\b`, 'g');
-        newTitle = newTitle.replace(regex, `<sub alias='${fullName}'>${abbr}</sub> Capítulo`);
-    }
+  for (const [abbr, fullName] of Object.entries(aliases)) {
+    const regex = new RegExp(`\\b${abbr}\\b`, "g");
+    newTitle = newTitle.replace(
+      regex,
+      `<sub alias='${fullName}'>${abbr}</sub> Capítulo`
+    );
+  }
 
-    newTitle = newTitle.replace(",", ", versículo ");
-    return newTitle;
+  newTitle = newTitle.replace(",", ", versículo ");
+  return newTitle;
 }
 
 exports.handler = Alexa.SkillBuilders.custom()
